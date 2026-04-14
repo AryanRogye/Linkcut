@@ -6,29 +6,16 @@
 //
 
 import SwiftUI
-import SwiftData
 
 struct LinkCutGroupsView: View {
-    
-    @Environment(\.modelContext) var ctx
-    @Query var components: [LinkCutComponent]
-    @Query var groups: [LinkCuts]
-    
     var body: some View {
         List {
             Section("New") {
                 LinkCutGroupAddView()
             }
             Section("Saved") {
-                savedSection
+                LinkCutGroupsListView()
             }
-        }
-    }
-    
-    @ViewBuilder
-    private var savedSection: some View {
-        ForEach(groups) { group in
-            Text(group.title)
         }
     }
 }
