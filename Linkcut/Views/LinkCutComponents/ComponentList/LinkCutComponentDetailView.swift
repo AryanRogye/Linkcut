@@ -6,15 +6,31 @@
 //
 
 import SwiftUI
+import SwiftData
+import WidgetKit
 
 struct LinkCutComponentDetailView: View {
     
+    @Environment(\.modelContext) private var ctx
     @Bindable var component: LinkCutComponent
     @State private var showEditIcon = false
+    @State private var showEditURL = false
+    
+    @State private var selectedURLText: String = ""
+    @State private var urlType: URLType = .app
+    
+    @State private var error: String?
+    @State private var showError = false
     
     var body: some View {
         List {
             iconDisplay
+            
+            if showEditURL {
+                editURLTypeView
+            } else {
+                urlTypeView
+            }
             
             actionButton
         }
@@ -23,6 +39,92 @@ struct LinkCutComponentDetailView: View {
             EditIconView(component: component)
                 .presentationDetents([.medium])
         }
+        .alert(isPresented: $showError) {
+            Alert(
+                title: Text("Add Error"),
+                message: Text(error ?? "Unkown Error")
+            )
+        }
+    }
+    
+    // MARK: - urlTypeView
+    @ViewBuilder
+    private var editURLTypeView: some View {
+        VStack {
+            URLPicker(
+                selectedURLText: $selectedURLText,
+                urlType: $urlType
+            )
+            
+            HStack {
+                /// Close Button Here
+                Button {
+                    withAnimation(.snappy) {
+                        showEditURL = false
+                    }
+                } label: {
+                    Image(systemName: "xmark")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                
+                Button(action: saveAction) {
+                    Text("Save")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var urlTypeView: some View {
+        Button(action: {
+            selectedURLText = "\(component.url)"
+            urlType = component.urlType
+            /// Show Selected
+            withAnimation(.snappy) {
+                showEditURL = true
+            }
+        }) {
+            HStack(alignment: .center) {
+                switch component.urlType {
+                case .app:
+                    Text("\(component.url)")
+                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    urlTypeLabel("App")
+                case .appleShortcut:
+                    Text(getShortcutName(from: component.url) ?? component.url.path)
+                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .foregroundStyle(.primary)
+                    Spacer()
+                    urlTypeLabel("Apple Shortcut")
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private func urlTypeLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 14, weight: .semibold, design: .rounded))
+            .padding(.vertical, 2)
+            .padding(.horizontal)
+            .background {
+                Capsule()
+                    .fill(.secondary.opacity(0.2))
+                    .overlay {
+                        Capsule()
+                            .fill(.clear)
+                            .stroke(
+                                .secondary.opacity(0.3),
+                                style: .init(lineWidth: 0.5)
+                            )
+                    }
+            }
     }
     
     // MARK: - Icon Display
@@ -30,11 +132,11 @@ struct LinkCutComponentDetailView: View {
         HStack {
             Spacer()
             /// The Middle Will be The Icon the User uses
-            VStack {
-                icon
-                /// Button to change the icon
-                changeIcon
-            }
+            icon
+            /// A VStack wont work here cuz it breaks the list for some reason
+                .safeAreaInset(edge: .bottom) {
+                    changeIcon
+                }
             Spacer()
         }
     }
@@ -75,9 +177,10 @@ struct LinkCutComponentDetailView: View {
             showEditIcon = true
         } label: {
             Text("Change Icon")
-                .font(.system(size: 12, weight: .regular, design: .rounded))
+                .font(.system(size: 11, weight: .regular, design: .rounded))
                 .foregroundStyle(.secondary)
-                .padding(4)
+                .padding(.vertical, 4)
+                .padding(.horizontal, 8)
                 .background {
                     Capsule()
                         .fill(.clear)
@@ -102,6 +205,46 @@ struct LinkCutComponentDetailView: View {
                 .padding(.vertical, 4)
         }
         .buttonStyle(.borderedProminent)
+    }
+    
+    func getShortcutName(from url: URL) -> String? {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let queryItems = components.queryItems else {
+            return nil
+        }
+        
+        return queryItems.first(where: { $0.name == "name" })?.value
+    }
+    
+    private func saveAction() {
+        guard !selectedURLText.isEmpty else {
+            error = "Please enter a url"
+            showError = true
+            return
+        }
+        let urlText: String
+        switch urlType {
+        case .app:
+            urlText = selectedURLText
+        case .appleShortcut:
+            urlText = "shortcuts://run-shortcut?name=\(selectedURLText)"
+        }
+        guard let selectedURL = URL(string: urlText) else {
+            error = "Please Select a Valid URL"
+            showError = true
+            return
+        }
+        
+        component.url = selectedURL
+        component.urlType = urlType
+        
+        selectedURLText = ""
+        try? ctx.save()
+        WidgetCenter.shared.reloadAllTimelines()
+        
+        withAnimation(.snappy) {
+            showEditURL = false
+        }
     }
 }
 

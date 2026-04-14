@@ -44,7 +44,10 @@ struct LinkCutComponentAddView: View {
             Divider().padding(.horizontal, -16)
             
             /// URL Picker
-            urlPicker
+            URLPicker(
+                selectedURLText: $selectedURLText,
+                urlType: $urlType
+            )
             
             Divider().padding(.horizontal, -16)
             
@@ -65,25 +68,6 @@ struct LinkCutComponentAddView: View {
                 message: Text(error ?? "Unkown Error")
             )
         }
-    }
-    
-    // MARK: - URL Picker
-    
-    private var urlPicker: some View {
-        HStack {
-            TextField(urlType.placeholderName, text: $selectedURLText)
-                .focused($focusURL)
-                .frame(maxWidth: .infinity)
-            Picker("", selection: $urlType) {
-                ForEach(URLType.allCases, id: \.self) { type in
-                    Text(type.rawValue).tag(type)
-                }
-            }
-            .fixedSize()
-            .pickerStyle(.menu)
-            .tint(.secondary)
-        }
-        .padding(.vertical, 4)
     }
     
     // MARK: - Actions
