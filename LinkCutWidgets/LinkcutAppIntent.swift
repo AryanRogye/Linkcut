@@ -14,13 +14,13 @@ struct LinkcutAppIntent: WidgetConfigurationIntent {
     static let description: IntentDescription? = "Make Changes to your LinkCut Widget"
     
     @Parameter(title: "Shortcut", optionsProvider: ShortcutOptionsProvider())
-    var componentName: String?
+    var linkCutTitle: String?
 }
 
 struct ShortcutOptionsProvider: DynamicOptionsProvider {
     func results() async throws -> [String] {
         let ctx = ModelContext(SharedModelContainer.shared)
-        let items = try ctx.fetch(FetchDescriptor<LinkCutComponent>())
-        return items.map(\.componentName)
+        let items = try ctx.fetch(FetchDescriptor<LinkCuts>())
+        return items.map(\.title)
     }
 }

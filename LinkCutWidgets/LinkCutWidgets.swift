@@ -12,14 +12,14 @@ import AppIntents
 
 struct LinkCutInfo: TimelineEntry {
     let date: Date
-    let linkCutItem: LinkCutComponent?
+    let components: [LinkCutComponent]?
 }
 
 struct Provider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> LinkCutInfo {
         LinkCutInfo(
             date: .now,
-            linkCutItem: nil
+            components: nil
         )
     }
     
@@ -27,15 +27,15 @@ struct Provider: AppIntentTimelineProvider {
         for configuration: LinkcutAppIntent,
         in context: Context
     ) async -> LinkCutInfo {
-        if let item = getLinkCutItem(componentName: configuration.componentName) {
+        if let item = getLinkCutComponents(linkCutTitle: configuration.linkCutTitle) {
             return LinkCutInfo(
                 date: .now,
-                linkCutItem: item
+                components: item
             )
         } else {
             return LinkCutInfo(
                 date: .now,
-                linkCutItem: nil
+                components: nil
             )
         }
     }
@@ -45,24 +45,50 @@ struct Provider: AppIntentTimelineProvider {
         in context: Context
     ) async -> Timeline<LinkCutInfo> {
         let entry: LinkCutInfo
-        if let item = getLinkCutItem(componentName: configuration.componentName) {
+        if let item = getLinkCutComponents(linkCutTitle: configuration.linkCutTitle) {
             entry = LinkCutInfo(
                 date: .now,
-                linkCutItem: item
+                components: item
             )
         } else {
             entry = LinkCutInfo(
                 date: .now,
-                linkCutItem: nil
+                components: nil
             )
         }
         return Timeline(entries: [entry], policy: .after(.now.addingTimeInterval(1800)))
     }
     
-    private func getLinkCutItem(componentName: String?) -> LinkCutComponent? {
-        guard let componentName else { return nil }
-        let items = try? SharedModelContainer.getAllShortcutItems()
-        return items?.first(where: { $0.componentName == componentName })
+    private func getLinkCutComponents(linkCutTitle: String?) -> [LinkCutComponent]? {
+        guard let linkCutTitle else { return nil }
+        let items = try? SharedModelContainer.getAllLinkCuts()
+        return items?.first(where: { $0.title == linkCutTitle })?.components
+    }
+}
+
+struct ComponentCard: View {
+    var component: LinkCutComponent
+    
+    var body: some View {
+        Group {
+            switch component.urlType {
+            case .app:
+                Link(destination: URL(string: "linkcut://open?itemID=\(component.id.uuidString)")!) {
+                    label(component)
+                }
+            case .appleShortcut:
+                Button(intent: OpenLinkIntent(url: component.url)) {
+                    label(component)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private func label(_ component: LinkCutComponent) -> some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(component.color)
+            .stroke(.white, style: .init(lineWidth: 0.5))
     }
 }
 
@@ -72,36 +98,25 @@ struct LinkCutWidgetsEntryView: View {
     @Environment(\.widgetFamily) var family
     @Environment(\.widgetRenderingMode) private var widgetRenderingMode
     
+    let size : CGFloat = 50
+    
+    let columns = [
+        GridItem(.adaptive(minimum: 50), spacing: 12)
+    ]
+    
     var body: some View {
         HStack {
-            if let component = entry.linkCutItem {
-                VStack {
-                    Group {
-                        switch component.urlType {
-                        case .app:
-                            Link(destination: URL(string: "linkcut://open?itemID=\(component.id.uuidString)")!) {
-                                label(component)
-                            }
-                        case .appleShortcut:
-                            Button(intent: OpenLinkIntent(url: component.url)) {
-                                label(component)
-                            }
-                        }
+            if let components = entry.components {
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(components) { component in
+                        ComponentCard(component: component)
+                            .frame(width: size, height: size)
                     }
-                    .buttonStyle(.plain)
-
-                    Text("\(component.componentName)")
                 }
             } else {
                 Text("Please Select A Link Cut")
             }
         }
-    }
-    
-    private func label(_ component: LinkCutComponent) -> some View {
-        RoundedRectangle(cornerRadius: 12)
-            .fill(.clear)
-            .stroke(.white, style: .init(lineWidth: 0.5))
     }
 }
 
@@ -117,10 +132,7 @@ struct LinkCutWidgets: Widget {
             LinkCutWidgetsEntryView(entry: entry)
                 .contentMargins(.zero)
                 .containerBackground(for: .widget) {
-                    if let color = entry.linkCutItem?.color {
-                        return color
-                    }
-                    return .black
+                    Color.black
                 }
                 .background(.clear)
         }

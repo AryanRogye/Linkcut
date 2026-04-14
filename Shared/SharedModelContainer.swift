@@ -26,6 +26,12 @@ enum SharedModelContainer {
         }
     }()
     
+    public static func getAllLinkCuts() throws -> [LinkCuts] {
+        let ctx = ModelContext(Self.shared)
+        let descriptor = FetchDescriptor<LinkCuts>()
+        return try ctx.fetch(descriptor)
+    }
+    
     public static func getAllShortcutItems() throws -> [LinkCutComponent] {
         let ctx = ModelContext(Self.shared)
         let descriptor = FetchDescriptor<LinkCutComponent>()
