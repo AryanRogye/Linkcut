@@ -12,7 +12,7 @@ enum SharedModelContainer {
     static let groupID = "group.com.aryan.linkcut"
     
     static var shared: ModelContainer = {
-        let schema = Schema([LinkCutComponent.self])
+        let schema = Schema([LinkCutComponent.self, LinkCuts.self])
         
         let configuration = ModelConfiguration(
             schema: schema,
