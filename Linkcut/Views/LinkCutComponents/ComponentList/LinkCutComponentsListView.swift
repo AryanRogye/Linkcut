@@ -17,6 +17,8 @@ struct LinkCutComponentsListView: View {
     @State private var error: String?
     @State private var showError = false
     
+    @State private var selectedComponent: LinkCutComponent?
+    
     var body: some View {
         if components.isEmpty {
             emptyState
@@ -28,6 +30,9 @@ struct LinkCutComponentsListView: View {
                         message: Text(error ?? "Unkown Error")
                     )
                 }
+                .navigationDestination(item: $selectedComponent) { component in
+                    LinkCutComponentDetailView(component: component)
+                }
         }
     }
     
@@ -36,20 +41,9 @@ struct LinkCutComponentsListView: View {
     private var listView: some View {
         ForEach(components) { component in
             Button {
-                UIApplication.shared.open(component.url)
+                selectedComponent = component
             } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        componentName(component)
-                        componentURL(component)
-                    }
-                    
-                    Spacer()
-                    
-                    componentType(component)
-                }
-                .padding(.vertical, 4)
-                .contentShape(Rectangle())
+                LinkCutComponentRow(component: component)
             }
             .buttonStyle(.plain)
             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -58,46 +52,6 @@ struct LinkCutComponentsListView: View {
                 }
             }
         }
-    }
-    
-    // MARK: - Component Type
-    
-    private func componentType(_ component: LinkCutComponent) -> some View {
-        Text(component.urlType.rawValue)
-            .font(.caption2.weight(.medium))
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(
-                Capsule()
-                    .fill(component.color.opacity(0.5))
-            )
-    }
-    
-    // MARK: - Component URL
-    
-    private func componentURL(_ component: LinkCutComponent) -> some View {
-        Group {
-            switch component.urlType {
-            case .app:
-                Text("Open \(component.url)")
-            case .appleShortcut:
-                Text("Run \(getShortcutName(from: component.url), default: "Unknown") Shortcut")
-            }
-        }
-        .font(.caption2)
-        .foregroundStyle(.secondary)
-        .lineLimit(1)
-        .truncationMode(.middle)
-    }
-    
-    // MARK: - Component Name
-    
-    private func componentName(_ component: LinkCutComponent) -> some View {
-        Text(component.componentName)
-            .font(.body)
-            .fontWeight(.semibold)
-            .foregroundStyle(.primary)
     }
     
     // MARK: - Empty State
@@ -123,15 +77,6 @@ struct LinkCutComponentsListView: View {
     }
     
     // MARK: - Actions
-    
-    func getShortcutName(from url: URL) -> String? {
-        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
-              let queryItems = components.queryItems else {
-            return nil
-        }
-        
-        return queryItems.first(where: { $0.name == "name" })?.value
-    }
     
     private func removeAction(item: LinkCutComponent) {
         ctx.delete(item)

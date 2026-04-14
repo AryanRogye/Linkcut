@@ -15,9 +15,18 @@ struct LinkCutGroupsListView: View {
     @Query var components: [LinkCutComponent]
     @Query var groups: [LinkCuts]
     
+    @State private var selectedGroup: LinkCuts?
+    
     var body: some View {
         ForEach(groups) { group in
-            Text(group.title)
+            Button(action: { selectedGroup = group }) {
+                LinkCutGroupRow(group: group)
+            }
+            .buttonStyle(.plain)
+            .padding(.vertical, 4)
+        }
+        .navigationDestination(item: $selectedGroup) { group in
+            LinkCutGroupDetailView(group: group)
         }
     }
 }

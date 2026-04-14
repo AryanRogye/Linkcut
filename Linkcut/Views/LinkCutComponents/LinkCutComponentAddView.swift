@@ -117,15 +117,21 @@ struct LinkCutComponentAddView: View {
             showError = true
             return
         }
-        if let item = LinkCutComponent(
+        guard let hex = selectedColor.toHex() else {
+            error = "Couldnt Figure Out The Color"
+            showError = true
+            return
+        }
+        
+        let item = LinkCutComponent(
             componentName: componentName,
-            color: selectedColor,
+            appearance: .color(hex),
             url: selectedURL,
             urlType: urlType
-        ) {
-            ctx.insert(item)
-            // Reset inputs
-            componentName = ""
-        }
+        )
+        ctx.insert(item)
+        // Reset inputs
+        componentName = ""
+        
     }
 }

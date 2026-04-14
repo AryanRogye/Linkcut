@@ -34,19 +34,39 @@ public final class LinkCuts {
 public final class LinkCutComponent {
     public var id: UUID = UUID()
     public var componentName: String
-    public var colorHex: String
+    public var appearance: ComponentAppearance
     public var url: URL
     public var urlType: URLType
     
-    public var color: Color {
-        .init(hex: colorHex)!
+    var color: Color? {
+        if case let .color(hex) = appearance {
+            return Color(hex: hex)
+        }
+        return nil
     }
     
-    public init?(componentName: String, color: Color, url: URL, urlType: URLType) {
-        guard let hex = color.toHex() else { return nil }
-        self.url = url
+    var image: Image? {
+        if case let .image(data) = appearance,
+           let uiImage = UIImage(data: data) {
+            return Image(uiImage: uiImage)
+        }
+        return nil
+    }
+    
+    public init(componentName: String,
+                appearance: ComponentAppearance,
+                url: URL,
+                urlType: URLType) {
         self.componentName = componentName
-        self.colorHex = hex
+        self.appearance = appearance
+        self.url = url
         self.urlType = urlType
     }
+}
+
+public enum ComponentAppearance: Codable {
+    /// String Hex
+    case color(String)
+    /// Image Data
+    case image(Data)
 }

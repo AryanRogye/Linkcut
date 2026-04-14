@@ -70,29 +70,7 @@ struct LinkCutGroupAddView: View {
                     Button {
                         toggleSelection(component)
                     } label: {
-                        HStack(spacing: 8) {
-                            Circle()
-                                .fill(component.color)
-                                .frame(width: 10, height: 10)
-                            
-                            Text(component.componentName)
-                                .font(.subheadline)
-                            
-                            if isSelected {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(component.color)
-                            }
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule()
-                                .fill(isSelected ? component.color.opacity(0.18) : Color.secondary.opacity(0.08))
-                        )
-                        .overlay(
-                            Capsule()
-                                .stroke(isSelected ? component.color : Color.secondary.opacity(0.2), lineWidth: 1)
-                        )
+                        LinkCutComponentChip(component: component, isSelected: isSelected)
                     }
                     .buttonStyle(.plain)
                 }

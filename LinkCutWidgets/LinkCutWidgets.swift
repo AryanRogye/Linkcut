@@ -85,10 +85,15 @@ struct ComponentCard: View {
         .buttonStyle(.plain)
     }
     
+    @ViewBuilder
     private func label(_ component: LinkCutComponent) -> some View {
-        RoundedRectangle(cornerRadius: 12)
-            .fill(component.color)
-            .stroke(.white, style: .init(lineWidth: 0.5))
+        if let color = component.color {
+            RoundedRectangle(cornerRadius: 12)
+                .fill(color)
+                .stroke(.white, style: .init(lineWidth: 0.5))
+        } else if let image = component.image {
+            image
+        }
     }
 }
 
