@@ -39,8 +39,36 @@ struct LinkCutWidgets: Widget {
     }
 }
 
+struct LinkCutWidgetsEntryView: View {
+    
+    var entry: LinkCutDataSource.Entry
+    @Environment(\.widgetFamily) var family
+    
+    let size : CGFloat = 50
+    
+    let columns = [
+        GridItem(.adaptive(minimum: 50), spacing: 12)
+    ]
+    
+    var body: some View {
+        HStack {
+            if let components = entry.components {
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(components) { component in
+                        ComponentCard(component: component)
+                            .aspectRatio(1, contentMode: .fit)
+                    }
+                }
+            } else {
+                Text("Please Select A Link Cut")
+            }
+        }
+    }
+}
+
 struct ComponentCard: View {
     var component: LinkCutComponent
+    @Environment(\.widgetRenderingMode) private var widgetRenderingMode
     
     var body: some View {
         Group {
@@ -63,40 +91,16 @@ struct ComponentCard: View {
         if let color = component.color {
             RoundedRectangle(cornerRadius: 12)
                 .fill(color)
-                .stroke(.white, style: .init(lineWidth: 0.5))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(.white.opacity(0.25), lineWidth: 0.5)
+                )
         } else if let image = component.image {
             Image(uiImage: image)
                 .resizable()
+                .widgetAccentedRenderingMode(.fullColor)
                 .aspectRatio(contentMode: .fill)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-        }
-    }
-}
-
-struct LinkCutWidgetsEntryView: View {
-    
-    var entry: LinkCutDataSource.Entry
-    @Environment(\.widgetFamily) var family
-    @Environment(\.widgetRenderingMode) private var widgetRenderingMode
-    
-    let size : CGFloat = 50
-    
-    let columns = [
-        GridItem(.adaptive(minimum: 50), spacing: 12)
-    ]
-    
-    var body: some View {
-        HStack {
-            if let components = entry.components {
-                LazyVGrid(columns: columns, spacing: 12) {
-                    ForEach(components) { component in
-                        ComponentCard(component: component)
-                            .frame(width: size, height: size)
-                    }
-                }
-            } else {
-                Text("Please Select A Link Cut")
-            }
         }
     }
 }
