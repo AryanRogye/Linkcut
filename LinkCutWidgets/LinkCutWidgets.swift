@@ -10,59 +10,32 @@ import SwiftUI
 import Foundation
 import AppIntents
 
-struct LinkCutInfo: TimelineEntry {
-    let date: Date
-    let components: [LinkCutComponent]?
-}
-
-struct Provider: AppIntentTimelineProvider {
-    func placeholder(in context: Context) -> LinkCutInfo {
-        LinkCutInfo(
-            date: .now,
-            components: nil
-        )
-    }
+/**
+ * Main Widget
+ */
+struct LinkCutWidgets: Widget {
+    let kind: String = "LinkCutWidgets"
     
-    func snapshot(
-        for configuration: LinkcutAppIntent,
-        in context: Context
-    ) async -> LinkCutInfo {
-        if let item = getLinkCutComponents(linkCutTitle: configuration.linkCutTitle) {
-            return LinkCutInfo(
-                date: .now,
-                components: item
-            )
-        } else {
-            return LinkCutInfo(
-                date: .now,
-                components: nil
-            )
+    var body: some WidgetConfiguration {
+        AppIntentConfiguration(
+            kind: kind,
+            intent: LinkcutAppIntent.self,
+            provider: LinkCutDataSource()
+        ) { entry in
+            LinkCutWidgetsEntryView(entry: entry)
+                .contentMargins(.zero)
+                .containerBackground(for: .widget) {
+                    Color.black
+                }
+                .background(.clear)
         }
-    }
-    
-    func timeline(
-        for configuration: LinkcutAppIntent,
-        in context: Context
-    ) async -> Timeline<LinkCutInfo> {
-        let entry: LinkCutInfo
-        if let item = getLinkCutComponents(linkCutTitle: configuration.linkCutTitle) {
-            entry = LinkCutInfo(
-                date: .now,
-                components: item
-            )
-        } else {
-            entry = LinkCutInfo(
-                date: .now,
-                components: nil
-            )
-        }
-        return Timeline(entries: [entry], policy: .after(.now.addingTimeInterval(1800)))
-    }
-    
-    private func getLinkCutComponents(linkCutTitle: String?) -> [LinkCutComponent]? {
-        guard let linkCutTitle else { return nil }
-        let items = try? SharedModelContainer.getAllLinkCuts()
-        return items?.first(where: { $0.title == linkCutTitle })?.components
+        .supportedFamilies([
+            .systemSmall,
+            .systemMedium,
+            //            .accessoryInline,
+            //            .accessoryCircular,
+            //            .accessoryRectangular,
+        ])
     }
 }
 
@@ -92,14 +65,17 @@ struct ComponentCard: View {
                 .fill(color)
                 .stroke(.white, style: .init(lineWidth: 0.5))
         } else if let image = component.image {
-            image
+            Image(uiImage: image)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
 }
 
 struct LinkCutWidgetsEntryView: View {
     
-    var entry: Provider.Entry
+    var entry: LinkCutDataSource.Entry
     @Environment(\.widgetFamily) var family
     @Environment(\.widgetRenderingMode) private var widgetRenderingMode
     
@@ -122,31 +98,5 @@ struct LinkCutWidgetsEntryView: View {
                 Text("Please Select A Link Cut")
             }
         }
-    }
-}
-
-struct LinkCutWidgets: Widget {
-    let kind: String = "LinkCutWidgets"
-
-    var body: some WidgetConfiguration {
-        AppIntentConfiguration(
-            kind: kind,
-            intent: LinkcutAppIntent.self,
-            provider: Provider()
-        ) { entry in
-            LinkCutWidgetsEntryView(entry: entry)
-                .contentMargins(.zero)
-                .containerBackground(for: .widget) {
-                    Color.black
-                }
-                .background(.clear)
-        }
-        .supportedFamilies([
-            .systemSmall,
-            .systemMedium,
-//            .accessoryInline,
-//            .accessoryCircular,
-//            .accessoryRectangular,
-        ])
     }
 }

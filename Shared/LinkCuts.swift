@@ -1,5 +1,5 @@
 //
-//  LinkCutItem.swift
+//  LinkCuts.swift
 //  Linkcut
 //
 //  Created by Aryan Rogye on 4/13/26.
@@ -38,21 +38,6 @@ public final class LinkCutComponent {
     public var url: URL
     public var urlType: URLType
     
-    var color: Color? {
-        if case let .color(hex) = appearance {
-            return Color(hex: hex)
-        }
-        return nil
-    }
-    
-    var image: Image? {
-        if case let .image(data) = appearance,
-           let uiImage = UIImage(data: data) {
-            return Image(uiImage: uiImage)
-        }
-        return nil
-    }
-    
     public init(componentName: String,
                 appearance: ComponentAppearance,
                 url: URL,
@@ -62,9 +47,30 @@ public final class LinkCutComponent {
         self.url = url
         self.urlType = urlType
     }
+    
+    public func changeIcon(to new: ComponentAppearance) {
+        self.appearance = new
+    }
 }
 
-public enum ComponentAppearance: Codable {
+extension LinkCutComponent {
+    var color: Color? {
+        if case let .color(hex) = appearance {
+            return Color(hex: hex)
+        }
+        return nil
+    }
+    
+    var image: UIImage? {
+        if case let .image(data) = appearance {
+            return UIImage(data: data)
+        }
+        return nil
+    }
+}
+
+/// Nonisolated helps gets rid of the warning above on the appearance
+nonisolated public enum ComponentAppearance: Codable {
     /// String Hex
     case color(String)
     /// Image Data

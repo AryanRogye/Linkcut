@@ -15,7 +15,8 @@ struct LinkCutComponentAddView: View {
 
     @State private var componentName: String = ""
     @State private var selectedURLText: String = ""
-    @State private var selectedColor: Color = .blue
+    @State private var selectedColor: Color?
+    @State private var selectedImage: UIImage?
     @State private var urlType: URLType = .app
     @State private var error: String?
     @State private var showError = false
@@ -32,15 +33,14 @@ struct LinkCutComponentAddView: View {
 
     var body: some View {
         VStack {
-            /// Shortcut Name
-            TextField("Component Name", text: $componentName)
-            
+            /// Image or Color
+            ImageOrColorPicker(selectedColor: $selectedColor, selectedImage: $selectedImage)
+
             Divider().padding(.horizontal, -16)
             
-            /// Color Picker
-            ColorPicker("Color", selection: $selectedColor, supportsOpacity: false)
-                .padding(.vertical, 4)
-            
+            /// Shortcut Name
+            TextField("Component Name", text: $componentName)
+
             Divider().padding(.horizontal, -16)
             
             /// URL Picker
@@ -117,21 +117,30 @@ struct LinkCutComponentAddView: View {
             showError = true
             return
         }
-        guard let hex = selectedColor.toHex() else {
-            error = "Couldnt Figure Out The Color"
+        let appearance: ComponentAppearance
+        if let selectedImage,
+           let data = selectedImage.pngData() {
+            appearance = .image(data)
+        } else if let selectedColor,
+                  let hex = selectedColor.toHex() {
+            appearance = .color(hex)
+        } else {
+            error = "Please choose a color or image"
             showError = true
             return
         }
         
         let item = LinkCutComponent(
             componentName: componentName,
-            appearance: .color(hex),
+            appearance: appearance,
             url: selectedURL,
             urlType: urlType
         )
         ctx.insert(item)
         // Reset inputs
         componentName = ""
+        selectedColor = .blue
+        selectedImage = nil
         
     }
 }

@@ -22,7 +22,6 @@ struct LinkcutApp: App {
                     else {
                         return
                     }
-                    print("Open item:", itemID)
                     
                     guard let items = try? SharedModelContainer.getAllShortcutItems() else { return }
                     
