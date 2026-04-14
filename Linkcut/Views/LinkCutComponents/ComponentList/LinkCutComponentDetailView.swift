@@ -31,26 +31,42 @@ struct LinkCutComponentDetailView: View {
             Spacer()
             /// The Middle Will be The Icon the User uses
             VStack {
-                if let color = component.color {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(color)
-                        .frame(width: 120, height: 120, alignment: .center)
-                } else if let image = component.image {
-                    Image(uiImage: image)
-                        .resizable()
-                        .frame(width: 120, height: 120, alignment: .center)
-                        .scaledToFill()
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                } else {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(.secondary)
-                        .frame(width: 120, height: 120, alignment: .center)
-                }
+                icon
                 /// Button to change the icon
                 changeIcon
             }
             Spacer()
         }
+    }
+    
+    @ViewBuilder
+    private var icon: some View {
+        switch component.appearance {
+        case .color(_):
+            if let color = component.color {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(color)
+                    .frame(width: 120, height: 120, alignment: .center)
+            } else {
+                backup
+            }
+        case .image(_):
+            if let image = component.image {
+                Image(uiImage: image)
+                    .resizable()
+                    .frame(width: 120, height: 120, alignment: .center)
+                    .scaledToFill()
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else {
+                backup
+            }
+        }
+    }
+    
+    private var backup: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(.secondary)
+            .frame(width: 120, height: 120, alignment: .center)
     }
     
     private var changeIcon: some View {
@@ -80,7 +96,10 @@ struct LinkCutComponentDetailView: View {
         Button {
             UIApplication.shared.open(component.url)
         } label: {
-            Text("Test Component")
+            Text("Test")
+                .frame(maxWidth: .infinity)
+                .foregroundStyle(.white)
+                .padding(.vertical, 4)
         }
         .buttonStyle(.borderedProminent)
     }

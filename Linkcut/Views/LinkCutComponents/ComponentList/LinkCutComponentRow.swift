@@ -25,10 +25,6 @@ struct LinkCutComponentRow: View {
             Spacer()
             
             componentType(component)
-            
-            Image(systemName: "chevron.right")
-                .foregroundStyle(.secondary)
-            
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())

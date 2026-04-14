@@ -26,6 +26,12 @@ public final class LinkCutComponent {
     public var url: URL
     public var urlType: URLType
     
+    /**
+     * This is a internal color flag that gets set when our
+     * appearance is a image
+     */
+    private var backupColor : String?
+    
     public init(componentName: String,
                 appearance: ComponentAppearance,
                 url: URL,
@@ -34,17 +40,31 @@ public final class LinkCutComponent {
         self.appearance = appearance
         self.url = url
         self.urlType = urlType
+        setBackupColor()
     }
     
     public func changeIcon(to new: ComponentAppearance) {
         self.appearance = new
+        setBackupColor()
+    }
+    
+    public func setBackupColor() {
+        if let image {
+            if let color = ImageColorProcessor.getDominantColor(from: image) {
+                backupColor = Color(uiColor: color).toHex()
+            }
+        }
     }
 }
 
+// MARK: - Computed
 extension LinkCutComponent {
     var color: Color? {
         if case let .color(hex) = appearance {
             return Color(hex: hex)
+        }
+        if let backupColor {
+            return Color(hex: backupColor)
         }
         return nil
     }

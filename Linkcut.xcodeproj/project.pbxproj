@@ -55,6 +55,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"Color+hex.swift",
+				Helpers/ImageColorProcessor.swift,
 				Models/ComponentAppearance.swift,
 				Models/LinkCutComponent.swift,
 				Models/LinkCuts.swift,

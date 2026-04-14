@@ -88,19 +88,37 @@ struct ComponentCard: View {
     
     @ViewBuilder
     private func label(_ component: LinkCutComponent) -> some View {
-        if let color = component.color {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(color)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(.white.opacity(0.25), lineWidth: 0.5)
-                )
-        } else if let image = component.image {
-            Image(uiImage: image)
-                .resizable()
-                .widgetAccentedRenderingMode(.fullColor)
-                .aspectRatio(contentMode: .fill)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+        switch component.appearance {
+        case .color(_):
+            if let color = component.color {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(color)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(.white.opacity(0.25), lineWidth: 0.5)
+                    )
+            } else {
+                backup
+            }
+        case .image(_):
+            if let image = component.image {
+                Image(uiImage: image)
+                    .resizable()
+                    .widgetAccentedRenderingMode(.fullColor)
+                    .aspectRatio(contentMode: .fill)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else {
+                backup
+            }
         }
+    }
+    
+    private var backup: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(.secondary)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(.white.opacity(0.25), lineWidth: 0.5)
+            )
     }
 }

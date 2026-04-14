@@ -7,9 +7,10 @@
 
 import SwiftUI
 import SwiftData
-import WidgetKit
 
 struct LinkCutComponentsView: View {
+    @Query var components: [LinkCutComponent]
+
     var body: some View {
         List {
             Section("New") {
@@ -17,7 +18,13 @@ struct LinkCutComponentsView: View {
             }
 
             Section("Saved") {
-                LinkCutComponentsListView()
+                if components.isEmpty {
+                    LinkCutComponentsEmptyStateView()
+                } else {
+                    ForEach(components) { component in
+                        LinkCutComponentsListRow(component: component)
+                    }
+                }
             }
         }
         .scrollDismissesKeyboard(.immediately)
