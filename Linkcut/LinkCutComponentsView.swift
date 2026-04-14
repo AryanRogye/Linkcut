@@ -10,20 +10,20 @@ import SwiftData
 import WidgetKit
 
 struct LinkCutComponentsView: View {
-    
+
     @Environment(\.modelContext) var ctx
     @Query var components: [LinkCutComponent]
-    
+
     @State private var componentName: String = ""
     @State private var selectedURLText: String = ""
     @State private var selectedColor: Color = .blue
     @State private var urlType: URLType = .app
-    
+
     @State private var error: String?
     @State private var showError = false
-    
+
     @FocusState private var focusURL: Bool
-    
+
     var addDisabled: Bool {
         return componentName.trimmingCharacters(
             in: .whitespaces
@@ -31,13 +31,13 @@ struct LinkCutComponentsView: View {
             in: .whitespaces
         ).isEmpty
     }
-    
+
     var body: some View {
         List {
             Section("New") {
                 addSection
             }
-            
+
             Section("Saved") {
                 listView
             }
@@ -50,23 +50,23 @@ struct LinkCutComponentsView: View {
             )
         }
     }
-    
+
     private var addSection: some View {
         VStack {
             /// Shortcut Name
             TextField("Component Name", text: $componentName)
-            
+
             Divider().padding(.horizontal, -16)
-            
+
             /// Color Picker
             ColorPicker("Color", selection: $selectedColor, supportsOpacity: false)
                 .padding(.vertical, 4)
-            
+
             Divider().padding(.horizontal, -16)
-            
+
             /// URL Picker
             urlPicker
-            
+
             Divider().padding(.horizontal, -16)
 
             /// Add Action
@@ -81,7 +81,7 @@ struct LinkCutComponentsView: View {
             .padding(.top, 6)
         }
     }
-    
+
     private var urlPicker: some View {
         HStack {
             TextField(urlType.placeholderName, text: $selectedURLText)
@@ -98,7 +98,7 @@ struct LinkCutComponentsView: View {
         }
         .padding(.vertical, 4)
     }
-    
+
     @ViewBuilder
     private var listView: some View {
         if components.isEmpty {
@@ -106,11 +106,11 @@ struct LinkCutComponentsView: View {
                 Image(systemName: "tray")
                     .font(.system(size: 32, weight: .light))
                     .foregroundStyle(.secondary)
-                
+
                 Text("Your items will appear here once added.")
                     .font(.headline)
                     .foregroundStyle(.primary)
-                
+
                 Text("Your items will appear here once added.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -121,32 +121,64 @@ struct LinkCutComponentsView: View {
             .padding()
         } else {
             ForEach(components) { component in
-                VStack(spacing: 0) {
+                Button {
+                    UIApplication.shared.open(component.url)
+                } label: {
                     HStack {
-                        Circle()
-                            .fill(component.color)
-                            .frame(width: 12, height: 12)
-                        
-                        Text(component.componentName)
-                            .font(.body)
-                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(component.componentName)
+                                .font(.body)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.primary)
+                            
+                            Group {
+                                switch component.urlType {
+                                case .app:
+                                    Text("Open \(component.url)")
+                                case .appleShortcut:
+                                    Text("Run \(getShortcutName(from: component.url), default: "Unknown") Shortcut")
+                                }
+                            }
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                        }
+
                         Spacer()
+
+                        Text(component.urlType.rawValue)
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                Capsule()
+                                    .fill(component.color.opacity(0.5))
+                            )
                     }
-                    Button(action: {
-                        UIApplication.shared.open(component.url)
-                    }) {
-                        Text("test url")
-                    }
-                    .buttonStyle(.borderedProminent)
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
                 }
-                .padding(.vertical, 4)
+                .buttonStyle(.plain)
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                    Button(role: .destructive, action: { removeAction(item: component) })
+                    Button(role: .destructive, action: { removeAction(item: component) }) {
+                        Label("Delete", systemImage: "trash")
+                    }
                 }
             }
         }
     }
     
+    func getShortcutName(from url: URL) -> String? {
+        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let queryItems = components.queryItems else {
+            return nil
+        }
+        
+        return queryItems.first(where: { $0.name == "name" })?.value
+    }
+
     private func removeAction(item: LinkCutComponent) {
         ctx.delete(item)
         do {
@@ -157,7 +189,7 @@ struct LinkCutComponentsView: View {
             showError = true
         }
     }
-    
+
     private func addAction() {
         guard !componentName.isEmpty else {
             error = "Please enter a component name"
