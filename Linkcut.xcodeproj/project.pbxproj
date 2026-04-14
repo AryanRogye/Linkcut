@@ -55,10 +55,12 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"Color+hex.swift",
-				LinkCuts.swift,
+				Models/ComponentAppearance.swift,
+				Models/LinkCutComponent.swift,
+				Models/LinkCuts.swift,
+				Models/URLType.swift,
 				OpenLinkIntent.swift,
 				SharedModelContainer.swift,
-				URLType.swift,
 			);
 			target = 9BF265132F8D3D6900BAA631 /* Linkcut */;
 		};

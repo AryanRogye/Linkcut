@@ -1,35 +1,23 @@
 //
-//  LinkCuts.swift
+//  LinkCutComponent.swift
 //  Linkcut
 //
-//  Created by Aryan Rogye on 4/13/26.
+//  Created by Aryan Rogye on 4/14/26.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
-@Model
-public final class LinkCuts {
-    public var title: String
-    public var components: [LinkCutComponent]
-    
-    init(title: String) {
-        self.title = title
-        self.components = []
-    }
-    init(title: String, items: [LinkCutComponent]) {
-        self.title = title
-        self.components = items
-    }
-    
-    public func add(_ item: LinkCutComponent) {
-        components.append(item)
-    }
-    public func remove(_ item: LinkCutComponent) {
-        components.removeAll(where: { $0.id == item.id })
-    }
-}
-
+/**
+ * This is one individual component inside a LinkCuts group.
+ *
+ * A component is the actual thing the user can launch.
+ *
+ * It stores the name, how it should look, the URL to open,
+ * and what kind of URL it is.
+ *
+ * This is what shows up inside a section when the user opens it.
+ */
 @Model
 public final class LinkCutComponent {
     public var id: UUID = UUID()
@@ -67,12 +55,4 @@ extension LinkCutComponent {
         }
         return nil
     }
-}
-
-/// Nonisolated helps gets rid of the warning above on the appearance
-nonisolated public enum ComponentAppearance: Codable {
-    /// String Hex
-    case color(String)
-    /// Image Data
-    case image(Data)
 }

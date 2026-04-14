@@ -5,6 +5,9 @@
 //  Created by Aryan Rogye on 4/13/26.
 //
 
+/**
+ * The type of url we are adding
+ */
 public enum URLType: String, CaseIterable, Codable {
     case app
     case appleShortcut
